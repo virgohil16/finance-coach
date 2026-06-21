@@ -30,7 +30,7 @@ This project combines transaction analytics with large language models to help u
 ## Roadmap
 
 - [x] Repository setup
-- [ ] Transaction CSV parser and cleaning pipeline
+- [x] Transaction CSV parser and cleaning pipeline
 - [ ] LLM-based transaction categorisation
 - [ ] SQL schema design and integration
 - [ ] Streamlit dashboard with spending visualisations
