@@ -24,7 +24,7 @@ def load_transactions(csv_path: Path = DEFAULT_CSV) -> pd.DataFrame:
     if missing:
         raise ValueError(f"CSV missing required columns: {missing}")
 
-    # Aus banks export DD/MM/YYYY — pandas defaults to US format silently
+    # Aus banks export DD/MM/YYYY - pandas defaults to US format silently
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
     df["Description"] = df["Description"].astype(str).str.strip()
     df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
