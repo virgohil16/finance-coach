@@ -4,6 +4,8 @@ An AI-powered personal finance tool built for **international students in Austra
 
 Most budgeting apps assume you're a local working adult. International students deal with stuff those apps ignore: a 48-hour fortnightly work limit on their visa, money coming in from family overseas, money going back home, and casual jobs with irregular pay. finance-coach is built around those problems.
 
+**🔗 Live demo: [finance-coach-vir.streamlit.app](https://finance-coach-vir.streamlit.app/)**
+
 > **Status:** in active development. Core data pipeline, categorisation and visa hours tracking are working. Dashboard and AI features are next (see [Roadmap](#roadmap)).
 
 ---
