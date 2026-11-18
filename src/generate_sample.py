@@ -38,7 +38,7 @@ while d <= END_DATE:
     add(d, "HUNGRY JACKS PAYROLL", hours * NIGHT_RATE)
     d += timedelta(days=7)
 
-# Weekly rent — Mondays
+# Weekly rent - Mondays
 d = START_DATE
 while d.weekday() != 0:
     d += timedelta(days=1)
@@ -65,7 +65,7 @@ while d <= END_DATE:
     if random.random() < 0.45:
         store = random.choice(["WOOLWORTHS CLAYTON", "COLES CAULFIELD", "ALDI HUGHESDALE"])
         add(d, store, -round(random.uniform(8, 65), 2))
-    # Food delivery (Vir's weak spot — happens too often, perfect for AI advice)
+    # Food delivery (Vir's weak spot - happens too often, perfect for AI advice)
     if random.random() < 0.30:
         merchant = random.choice([
             "UBER * EATS HELP.UBER.COM",
@@ -91,12 +91,26 @@ add(date(2026, 4, 12), "INTL TRANSFER FROM IN - PARENTS", 1500.00)
 add(date(2026, 5, 18), "WISE TRANSFER TO INR - FAMILY", -800.00)
 add(date(2026, 6, 5), "INTL TRANSFER FROM IN - PARENTS", 1200.00)
 
-# Anomaly — a big Uber Eats charge well above normal (anomaly detection will flag)
+# Anomaly - a big Uber Eats charge well above normal (anomaly detection will flag)
 add(date(2026, 5, 24), "UBER * EATS HELP.UBER.COM", -89.50)
 
 # Bank fees (intl card)
 add(date(2026, 4, 30), "FOREIGN TRANSACTION FEE", -3.50)
 add(date(2026, 5, 31), "FOREIGN TRANSACTION FEE", -2.10)
+
+# Messy real-world merchant names the regex rules won't catch
+# (payment processor prefixes like SQ *, SMP*, PAYPAL *) - these go to the LLM
+MESSY = [
+    (date(2026, 4, 9), "SQ *JOES BURGERS CARLTON", -18.50),
+    (date(2026, 4, 19), "PAYPAL *STEAMGAMES", -34.95),
+    (date(2026, 5, 2), "SMP*KMART CHADSTONE", -42.00),
+    (date(2026, 5, 9), "LS GUZMAN Y GOMEZ CLAYTON", -16.90),
+    (date(2026, 5, 27), "CHEMIST WAREHOUSE CLAYTON", -23.45),
+    (date(2026, 6, 3), "OFFICEWORKS 0312 OAKLEIGH", -12.80),
+    (date(2026, 6, 13), "TICKETEK AUSTRALIA", -65.00),
+]
+for d, desc, amt in MESSY:
+    add(d, desc, amt)
 
 # Sort chronologically, then compute running balance
 txns.sort(key=lambda x: x[0])

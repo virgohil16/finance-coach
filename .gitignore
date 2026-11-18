@@ -9,7 +9,7 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 
-# Environment variables (API keys live here — never commit)
+# Environment variables (API keys live here - never commit)
 .env
 
 # Real bank data (privacy + security)
@@ -23,3 +23,5 @@ data/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+data/llm_cache.json

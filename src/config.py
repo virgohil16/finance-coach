@@ -15,3 +15,6 @@ WARNING_BUFFER = 4     # start warning when within this many hours of the limit
 COURSE_BREAKS = [
     (date(2026, 6, 20), date(2026, 7, 26)),
 ]
+
+# LLM settings - check console.groq.com/docs/models if this stops working
+LLM_MODEL = "openai/gpt-oss-20b"
