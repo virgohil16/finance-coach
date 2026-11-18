@@ -76,11 +76,12 @@ llm_categorise.py   LLM fallback for whatever the rules missed (+ cache)
 | LLM | Groq API (`openai/gpt-oss-20b`) |
 | Testing | pytest |
 | Config | python-dotenv |
-| Planned | Streamlit, Prophet |
-
+| Planned | Prophet |
+| Dashboard | Streamlit, Altair |
 ---
 
 ## Getting started
+streamlit run app.py   # launch the dashboard
 
 ### 1. Clone and set up
 
@@ -164,7 +165,7 @@ finance-coach/
 - [x] Project setup, sample data generator, validated CSV loader
 - [x] Rule-based categorisation + LLM fallback (96% → 100% coverage)
 - [x] Visa work-hours tracker (rolling 2-week windows, condition 8105)
-- [ ] Streamlit dashboard + live demo
+- [x] Streamlit dashboard + live demo
 - [ ] Subscription detector (find recurring charges you forgot about)
 - [ ] Anomaly detection (spending that doesn't match your usual pattern)
 - [ ] Spending forecast (Prophet)
