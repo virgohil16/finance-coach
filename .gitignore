@@ -7,6 +7,7 @@ __pycache__/
 *.pyc
 *.pyo
 .ipynb_checkpoints/
+.pytest_cache/
 
 # Environment variables (API keys live here — never commit)
 .env

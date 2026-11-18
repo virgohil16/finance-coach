@@ -10,6 +10,7 @@ import csv
 import random
 from datetime import date, timedelta
 from pathlib import Path
+from src.config import NIGHT_RATE
 
 random.seed(42)  # reproducible output
 
@@ -25,14 +26,17 @@ def add(d: date, desc: str, amt: float) -> None:
     txns.append((d, desc, round(amt, 2)))
 
 
-# Fortnightly HJ pay — every other Thursday, variable casual hours
+# Weekly HJ pay - every Wednesday, overnight shifts at the night rate
+# two weeks are rigged so they add up to 52 hrs -> tracker should catch it
+FORCED_HOURS = {date(2026, 5, 13): 30, date(2026, 5, 20): 22}
+
 d = START_DATE
-while d.weekday() != 3:  # 3 = Thursday
+while d.weekday() != 2:  # 2 = Wednesday
     d += timedelta(days=1)
 while d <= END_DATE:
-    hours = random.choice([16, 18, 20, 22, 24])
-    add(d, "HUNGRY JACKS PAYROLL", hours * 27.00)
-    d += timedelta(days=14)
+    hours = FORCED_HOURS.get(d, random.choice([18, 20, 22, 24]))
+    add(d, "HUNGRY JACKS PAYROLL", hours * NIGHT_RATE)
+    d += timedelta(days=7)
 
 # Weekly rent — Mondays
 d = START_DATE
