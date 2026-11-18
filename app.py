@@ -9,6 +9,7 @@ import streamlit as st
 from src.categorise import add_categories
 from src.data_loader import DEFAULT_CSV, load_transactions
 from src.visa_tracker import check_windows, weekly_hours
+from src.config import NIGHT_RATE
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -22,6 +23,10 @@ with st.sidebar:
     upload = st.file_uploader("Upload a bank CSV", type="csv")
     st.caption("Needs columns: Date, Description, Amount, Balance. "
                "Your file is processed in memory and never stored.")
+    rate = st.number_input(
+        "Your hourly pay rate ($)", min_value=1.0, value=NIGHT_RATE, step=0.5,
+        help="Used to estimate hours worked from your pay deposits.",
+    )
 
 try:
     df = load_transactions(upload if upload else DEFAULT_CSV)
@@ -69,7 +74,7 @@ with right:
 
 # --- visa hours ---
 st.subheader("Visa work hours (limit: 48 hrs per 2 weeks)")
-windows = check_windows(weekly_hours(df))
+windows = check_windows(weekly_hours(df, rate))
 
 if windows.empty:
     st.write("No payroll deposits found in this data.")
