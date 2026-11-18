@@ -11,14 +11,15 @@ DEFAULT_CSV = DATA_DIR / "sample_transactions.csv"
 REQUIRED_COLUMNS = ["Date", "Description", "Amount", "Balance"]
 
 
-def load_transactions(csv_path: Path = DEFAULT_CSV) -> pd.DataFrame:
-    """Load and clean a transactions CSV into a tidy DataFrame."""
-    if not csv_path.exists():
+def load_transactions(source=DEFAULT_CSV) -> pd.DataFrame:
+    """Load and clean transactions from a file path OR an uploaded file."""
+    # only check the path exists if we were actually given a path
+    if isinstance(source, (str, Path)) and not Path(source).exists():
         raise FileNotFoundError(
-            f"No CSV at {csv_path}. Run `python src/generate_sample.py` first."
+            f"No CSV at {source}. Run `python -m src.generate_sample` first."
         )
 
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(source)  # read_csv handles paths and file objects
 
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
