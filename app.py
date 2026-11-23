@@ -13,6 +13,7 @@ from src.config import NIGHT_RATE
 from src.data_loader import DEFAULT_CSV, load_transactions
 from src.llm_categorise import fill_uncategorised
 from src.visa_tracker import check_windows, weekly_hours
+from src.subscriptions import find_subscriptions
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -90,6 +91,22 @@ with right:
         tooltip=["Month", alt.Tooltip("Spent:Q", format="$,.0f")],
     )
     st.altair_chart(month_chart)
+
+# --- subscriptions ---
+st.subheader("Subscriptions")
+subs = find_subscriptions(df)
+
+if subs.empty:
+    st.write("No recurring monthly charges found.")
+else:
+    total = subs["Monthly cost"].sum()
+    # \$ because streamlit treats $...$ as a maths formula
+    st.write(f"Found **{len(subs)}** charges that repeat every month: "
+             f"**\\${total:,.2f}/month**, or **\\${total * 12:,.2f}/year**.")
+    st.dataframe(
+        subs.style.format({"Monthly cost": "${:.2f}", "Yearly cost": "${:.2f}"}),
+        hide_index=True,
+    )
 
 # --- visa hours ---
 st.subheader("Visa work hours (limit: 48 hrs per 2 weeks)")
