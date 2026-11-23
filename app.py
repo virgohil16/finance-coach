@@ -3,13 +3,16 @@
 Run locally:  streamlit run app.py
 Uploaded files are only processed in memory - nothing gets saved.
 """
+import logging
+
 import altair as alt
 import streamlit as st
 
 from src.categorise import add_categories
-from src.data_loader import DEFAULT_CSV, load_transactions
-from src.visa_tracker import check_windows, weekly_hours
 from src.config import NIGHT_RATE
+from src.data_loader import DEFAULT_CSV, load_transactions
+from src.llm_categorise import fill_uncategorised
+from src.visa_tracker import check_windows, weekly_hours
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -17,17 +20,20 @@ st.title("finance-coach")
 st.caption("Spending insights for international students in Australia. "
            "Not financial advice. Visa hours are estimates, check VEVO for your real conditions.")
 
-# --- data source ---
+# --- sidebar: data + settings ---
 with st.sidebar:
     st.header("Your data")
     upload = st.file_uploader("Upload a bank CSV", type="csv")
     st.caption("Needs columns: Date, Description, Amount, Balance. "
-               "Your file is processed in memory and never stored.")
+               "Your file is processed in memory and never stored. "
+               "Merchant names the rules can't recognise are sent to an AI model "
+               "to categorise. Amounts are never sent.")
     rate = st.number_input(
         "Your hourly pay rate ($)", min_value=1.0, value=NIGHT_RATE, step=0.5,
         help="Used to estimate hours worked from your pay deposits.",
     )
 
+# --- load ---
 try:
     df = load_transactions(upload if upload else DEFAULT_CSV)
 except ValueError as e:
@@ -37,7 +43,20 @@ except ValueError as e:
 if not upload:
     st.info("Showing sample data. Upload your own CSV in the sidebar.")
 
+# --- categorise: rules first, then LLM for whatever's left ---
 df = add_categories(df)
+
+# per-visitor cache in memory, so reruns don't hit the API again
+if "llm_cache" not in st.session_state:
+    st.session_state.llm_cache = {}
+try:
+    df = fill_uncategorised(df, cache_path=None, cache=st.session_state.llm_cache)
+except Exception:
+    # full error goes to the terminal / Cloud logs, user just sees a friendly note
+    logging.exception("LLM categorisation failed")
+    st.warning("AI categorisation is unavailable right now, "
+               "so some transactions are left as Uncategorised.")
+
 spend = df[df["Amount"] < 0]
 
 # --- headline numbers ---
