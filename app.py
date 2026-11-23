@@ -14,6 +14,7 @@ from src.data_loader import DEFAULT_CSV, load_transactions
 from src.llm_categorise import fill_uncategorised
 from src.visa_tracker import check_windows, weekly_hours
 from src.subscriptions import find_subscriptions
+from src.anomalies import find_anomalies
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -105,6 +106,20 @@ else:
              f"**\\${total:,.2f}/month**, or **\\${total * 12:,.2f}/year**.")
     st.dataframe(
         subs.style.format({"Monthly cost": "${:.2f}", "Yearly cost": "${:.2f}"}),
+        hide_index=True,
+    )
+
+# --- unusual spending ---
+st.subheader("Unusual spending")
+anomalies = find_anomalies(df)
+
+if anomalies.empty:
+    st.write("Nothing out of the ordinary.")
+else:
+    st.write(f"**{len(anomalies)}** transaction(s) well above what you usually "
+             "spend in that category.")
+    st.dataframe(
+        anomalies.style.format({"Amount": "${:.2f}", "Usual": "${:.2f}"}),
         hide_index=True,
     )
 
