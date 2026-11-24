@@ -16,6 +16,7 @@ from src.subscriptions import find_subscriptions
 from src.anomalies import find_anomalies
 from src.ask import ask
 from src.llm_categorise import fill_uncategorised, make_client
+from src.fx import fetch_rates, rate_stats, to_frame
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -141,6 +142,42 @@ else:
         .format({"Hours": "{:.1f}"})
     )
     st.dataframe(styled, hide_index=True)
+
+# --- AUD -> INR ---
+@st.cache_data(ttl=3600)  # rates only change daily, so fetch at most once an hour
+def load_fx():
+    return to_frame(fetch_rates())
+
+
+st.subheader("AUD → INR exchange rate (last 90 days)")
+try:
+    fx = load_fx()
+except Exception:
+    logging.exception("FX fetch failed")
+    fx = None
+
+if fx is None or fx.empty:
+    st.write("Exchange rates are unavailable right now.")
+else:
+    s = rate_stats(fx)
+    c1, c2, c3, c4 = st.columns(4)
+    # delta_color off = grey, so it doesn't imply "good time" or "bad time" to send
+    c1.metric(f"Latest ({s['latest_date']:%d %b})", f"₹{s['latest']:.2f}",
+              f"{s['vs_average_pct']:+.1f}% vs 90-day avg", delta_color="off")
+    c2.metric("90-day average", f"₹{s['average']:.2f}")
+    c3.metric("90-day high", f"₹{s['high']:.2f}")
+    c4.metric("90-day low", f"₹{s['low']:.2f}")
+
+    fx_chart = alt.Chart(fx).mark_line().encode(
+        x=alt.X("date:T", title=None),
+        y=alt.Y("rate:Q", title="₹ per $1 AUD", scale=alt.Scale(zero=False)),
+        tooltip=[alt.Tooltip("date:T", format="%d %b %Y"),
+                 alt.Tooltip("rate:Q", format=".3f")],
+    )
+    st.altair_chart(fx_chart)
+    st.caption("Reference rates from Frankfurter. Your bank or transfer service uses "
+               "its own rate and fees. Information only, not a recommendation on "
+               "when to send money.")
 
 with st.expander("All transactions"):
     st.dataframe(df, hide_index=True)
