@@ -11,10 +11,11 @@ import streamlit as st
 from src.categorise import add_categories
 from src.config import NIGHT_RATE
 from src.data_loader import DEFAULT_CSV, load_transactions
-from src.llm_categorise import fill_uncategorised
 from src.visa_tracker import check_windows, weekly_hours
 from src.subscriptions import find_subscriptions
 from src.anomalies import find_anomalies
+from src.ask import ask
+from src.llm_categorise import fill_uncategorised, make_client
 
 st.set_page_config(page_title="finance-coach", page_icon="💸", layout="wide")
 
@@ -29,7 +30,7 @@ with st.sidebar:
     st.caption("Needs columns: Date, Description, Amount, Balance. "
                "Your file is processed in memory and never stored. "
                "Merchant names the rules can't recognise are sent to an AI model "
-               "to categorise. Amounts are never sent.")
+               "to categorise. Amounts are only sent if you use the chat.")
     rate = st.number_input(
         "Your hourly pay rate ($)", min_value=1.0, value=NIGHT_RATE, step=0.5,
         help="Used to estimate hours worked from your pay deposits.",
@@ -143,3 +144,37 @@ else:
 
 with st.expander("All transactions"):
     st.dataframe(df, hide_index=True)
+
+# --- ask my finances ---
+st.subheader("Ask about your spending")
+st.caption("Uses an AI model. Using the chat sends a summary of your spending "
+           "(totals, subscriptions and unusual transactions) to the AI provider. "
+           "Answers can be wrong and aren't financial advice.")
+
+
+def show(text: str) -> None:
+    # escape $ so streamlit doesn't render dollar amounts as maths
+    st.markdown(text.replace("$", "\\$"))
+
+
+if "chat" not in st.session_state:
+    st.session_state.chat = []
+
+for msg in st.session_state.chat:
+    with st.chat_message(msg["role"]):
+        show(msg["content"])
+
+if question := st.chat_input("e.g. How much did I spend on food delivery in May?"):
+    with st.chat_message("user"):
+        show(question)
+    try:
+        with st.spinner("Thinking..."):
+            # only the last 6 messages, so long chats don't blow up the prompt
+            answer = ask(question, df, make_client(), st.session_state.chat[-6:])
+    except Exception:
+        logging.exception("Chat failed")
+        answer = "Sorry, I can't answer right now. Try again in a minute."
+    with st.chat_message("assistant"):
+        show(answer)
+    st.session_state.chat += [{"role": "user", "content": question},
+                              {"role": "assistant", "content": answer}]
